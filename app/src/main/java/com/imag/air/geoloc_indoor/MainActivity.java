@@ -36,9 +36,15 @@ import android.widget.Toast;
 
 import org.osmdroid.bonuspack.overlays.FolderOverlay;
 import org.osmdroid.bonuspack.overlays.Marker;
+import org.osmdroid.tileprovider.MapTileProviderBasic;
+import org.osmdroid.tileprovider.tilesource.FileBasedTileSource;
+import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.tileprovider.tilesource.XYTileSource;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -94,16 +100,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * Map to store marker with associated id
      */
-    private Map<Long, Marker> markerMap;
+    private Map<Integer, Marker> markerMap;
 
     private LocationService locationService;
 
 
     // If network is off, the application displays an AlertDialog and closes
 
-
     private boolean isGeolocated = false;
 
+    private ArrayList<LocationHistory> lh = new ArrayList<>();;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,10 +124,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         lvBeacon = (ListView) findViewById(R.id.lv_beacons);
 
+
       /*
       bla = new BeaconListAdapter(getTestingBeaconIdList(15));
       lvBeacon.setAdapter(bla);
       */
+
+
 
         beaconOverlayVisible = false;
 
@@ -217,24 +226,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mOverlay = new FolderOverlay(this);
         mMapView.getOverlays().add(mOverlay);
 
-        LocationHistory l1, l2, l3, l4, l5, l6, l7;
 
-        l1 = new LocationHistory(1, "Testing Beacon 1", 45.1846431, 5.7526904);
-        l2 = new LocationHistory(2, "Testing Beacon 2", 45.1845412, 5.7543592);
-        l3 = new LocationHistory(3, "Testing Beacon 3", 45.1935769, 5.7680371);
-        l4 = new LocationHistory(4, "Testing Beacon 4", 45.1841286, 5.7554077);
-        l5 = new LocationHistory(5, "Testing Beacon 5", 45.1833388, 5.7536574);
-        l6 = new LocationHistory(6, "Testing Beacon 6", 45.1857809, 5.7514625);
-        l7 = new LocationHistory(7, "Testing Beacon 7", 45.1853263, 5.758263);
 
-        placeNewMarker(l1);
+
+
+        lh.add(new LocationHistory(0, "Testing Beacon 1", 45.1846431, 5.7526904));
+        lh.add(new LocationHistory(1, "Testing Beacon 2", 45.1845412, 5.7543592));
+        lh.add(new LocationHistory(2, "Testing Beacon 3", 45.1935769, 5.7680371));
+        lh.add(new LocationHistory(3, "Testing Beacon 4", 45.1841286, 5.7554077));
+        lh.add(new LocationHistory(4, "Testing Beacon 5", 45.1833388, 5.7536574));
+        lh.add(new LocationHistory(5, "Testing Beacon 6", 45.1857809, 5.7514625));
+        lh.add(new LocationHistory(6, "Testing Beacon 7", 45.1853263, 5.758263));
+
+
+       /* placeNewMarker(l1);
         placeNewMarker(l2);
         placeNewMarker(l3);
         placeNewMarker(l4);
         placeNewMarker(l5);
         placeNewMarker(l6);
-        placeNewMarker(l7);
+        placeNewMarker(l7);*/
 
+       /* MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(getApplicationContext(),mMapView);
+        mLocationOverlay.enableMyLocation(new GpsMyLocationProvider(getApplicationContext()));
+        mMapView.getOverlays().add(mLocationOverlay);
+        GeoPoint gp = mLocationOverlay.getMyLocation();
+        placeMe(new LocationHistory(8,"Me",gp.getLatitude(),gp.getLongitude()));
+        */
     }
 
     /**
@@ -350,9 +368,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected void onPostExecute(List<BeaconId> location) {
             if (location != null) {
                 bla = new BeaconListAdapter(location);
+                BeaconId bi = location.get(0);
+                Toast.makeText(MainActivity.this, "beacon : "+bi.toString(), Toast.LENGTH_SHORT).show();
                 lvBeacon.setAdapter(bla);
-            } else
+            } else {
                 Toast.makeText(MainActivity.this, "Request to server failed", Toast.LENGTH_SHORT).show();
+                //placeNewMarker();
+                bla = new BeaconListAdapter(getTestingBeaconIdList());
+                lvBeacon.setAdapter(bla);
+
+            }
         }
     }
 
@@ -374,14 +399,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             setIcon21(mMarker);
 
         mOverlay.add(mMarker);
-        markerMap.put(lh.getId(), mMarker);
+        markerMap.put(lh.getId().intValue(), mMarker);
 
-        mMapView.invalidate();
     }
 
-    public void removeMarker(double id) {
-        mOverlay.remove(markerMap.get(id));
-        markerMap.remove(id);
+    public void placeNewMarker(int index) {
+        Marker mMarker = new Marker(mMapView);
+        LocationHistory localLh = this.lh.get(index);
+        mMarker.setPosition(new GeoPoint(localLh.getLatitude(), localLh.getLongitude()));
+        mMarker.setTitle(String.valueOf(localLh.getLabel()));
+        mMarker.setSnippet(getString(R.string.floor) + localLh.getLevel() + "\n"
+                + "ID : " + localLh.getId());
+
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
+            setIcon19(mMarker);
+        else
+            setIcon21(mMarker);
+
+        mOverlay.add(mMarker);
+
+        markerMap.put(localLh.getId().intValue(), mMarker);
     }
 
     /**
@@ -402,9 +440,41 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 setIcon21(mMarker);
 
             mOverlay.add(mMarker);
-            markerMap.put(l.getId(), mMarker);
+            markerMap.put(l.getId().intValue(), mMarker);
         }
         mMapView.invalidate();
+    }
+
+    public void placeAllMarkers(){
+        Toast.makeText(MainActivity.this, "placeAll", Toast.LENGTH_SHORT).show();
+        for (LocationHistory l : lh) {
+            Marker mMarker = new Marker(mMapView);
+            mMarker.setPosition(new GeoPoint(l.getLatitude(), l.getLongitude()));
+            mMarker.setTitle(String.valueOf(l.getLabel()));
+            mMarker.setSnippet(getString(R.string.floor) + l.getLevel() + "\n" + "ID : " + l.getId());
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
+                setIcon19(mMarker);
+            else
+                setIcon21(mMarker);
+
+            if(markerMap.get(l.getId().intValue()) == null){
+                mOverlay.add(mMarker);
+                markerMap.put(l.getId().intValue(), mMarker);
+            }
+        }
+    }
+
+    public void removeMarker(int index) {
+        mOverlay.remove(markerMap.get(index));
+        markerMap.remove(index);
+    }
+
+    public void removeAllMarkers(){
+        int s = markerMap.size();
+        for(int i = 0;i<s;i++){
+            removeMarker(i);
+        }
     }
 
     public void placeMe(LocationHistory lh) {
@@ -414,7 +484,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mMarker.setSnippet(getString(R.string.floor) + lh.getLevel() + "\n" + "ID : " + lh.getId());
         mMarker.setIcon(getResources().getDrawable(R.drawable.ic_place_white_48dp));
         mOverlay.add(mMarker);
-        markerMap.put(lh.getId(), mMarker);
+        markerMap.put(lh.getId().intValue(), mMarker);
 
         mMapView.invalidate();
     }
@@ -422,14 +492,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * Generate a BeaconId list to test the lvBeacon ListView
      *
-     * @param n The number of beacons
+     *
      * @return A list with n BeaconId
      */
-    private List<BeaconId> getTestingBeaconIdList(int n) {
+    /*private List<BeaconId> getTestingBeaconIdList(int n) {
         List<BeaconId> r = new ArrayList<>();
         for (int i = 0; i < n; i++)
             r.add(new BeaconId(i, "Testing Beacon" + i));
 
+        return r;
+    }*/
+
+    private List<BeaconId> getTestingBeaconIdList(){
+        List<BeaconId> r = new ArrayList<>();
+        for (int i = 0; i < lh.size(); i++) {
+            LocationHistory lh_tmp = lh.get(i);
+            r.add(new BeaconId(lh_tmp.getId(), lh_tmp.getLabel()));
+        }
         return r;
     }
 
@@ -472,21 +551,54 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 holder.name = (TextView) view.findViewById(R.id.tv_name);
                 holder.id = (TextView) view.findViewById(R.id.tv_id);
                 holder.cb = (CheckBox) view.findViewById(R.id.cb_check);
-                holder.cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+                /*holder.cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        if (isChecked) {
+                        Toast.makeText(MainActivity.this, "change", Toast.LENGTH_SHORT).show();
+                       // if(buttonView.isShown()){
+
+                            Toast.makeText(MainActivity.this, "shown", Toast.LENGTH_SHORT).show();
+                            if (isChecked) {
+                                // CheckBox have been checked, let's add the value in the table !
+                                mCheckStates.put((Integer) buttonView.getTag(), isChecked);
+                                // TODO Subscribe MQTT
+                                // placeNewMarker
+
+                                placeNewMarker((Integer)buttonView.getTag());
+                            } else {
+                                mCheckStates.delete((Integer) buttonView.getTag());
+                                // TODO Unsubscribe MQTT
+                                // removeMarker
+                                removeMarker(((Integer) buttonView.getTag()).longValue());
+                            }
+                            mMapView.invalidate();
+                       // }
+                    }
+                });*/
+
+                holder.cb.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        CheckBox checkBox = (CheckBox)v;
+                        if ((checkBox.isChecked())) {
                             // CheckBox have been checked, let's add the value in the table !
-                            mCheckStates.put((Integer) buttonView.getTag(), isChecked);
+
+                            mCheckStates.put((Integer) checkBox.getTag(), checkBox.isChecked());
                             // TODO Subscribe MQTT
                             // placeNewMarker
+
+                            placeNewMarker((Integer)checkBox.getTag());
                         } else {
-                            mCheckStates.delete((Integer) buttonView.getTag());
+                            mCheckStates.delete((Integer) checkBox.getTag());
                             // TODO Unsubscribe MQTT
                             // removeMarker
+                            removeMarker(((Integer) checkBox.getTag()));
                         }
+                        mMapView.invalidate();
                     }
                 });
+
 
                 view.setTag(holder);
                 view.setTag(R.id.cb_check, holder.cb);
@@ -516,13 +628,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (mCheckStates.size() == list.size()) {
                 mCheckStates.clear();
                 notifyDataSetChanged();
+                removeAllMarkers();
             } else {
                 for (int i = 0; i < list.size(); i++) {
                     if (!mCheckStates.get(i))
                         mCheckStates.put(i, true);
                 }
                 notifyDataSetChanged();
+                placeAllMarkers();
             }
+            mMapView.invalidate();
         }
     }
 

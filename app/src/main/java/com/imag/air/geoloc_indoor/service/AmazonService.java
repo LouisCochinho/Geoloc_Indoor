@@ -11,6 +11,7 @@ import com.imag.air.geoloc_indoor.domain.BeaconId;
 public class AmazonService {
 
     public static final String rootUrl = "http://ec2-52-58-8-165.eu-central-1.compute.amazonaws.com:8080";
+    //public static final String rootUrl = "http://ec2-52-32-26-115.us-west-2.compute.amazonaws.com:8080";
 
 
     public static List<BeaconId> getDeviceList(){
