@@ -1,4 +1,4 @@
-package com.imag.air.geoloc_indoor.service;
+package com.imag.air.geoloc_indoor;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;

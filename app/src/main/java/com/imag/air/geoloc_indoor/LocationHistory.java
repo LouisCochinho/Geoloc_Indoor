@@ -1,4 +1,4 @@
-package com.imag.air.geoloc_indoor.domain;
+package com.imag.air.geoloc_indoor;
 
 /**
  * Created by Diana Stoian on 26.03.2016.

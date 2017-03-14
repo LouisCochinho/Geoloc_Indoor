@@ -1,14 +1,10 @@
-package com.imag.air.geoloc_indoor;
+package com.imag.air.geoloc_indoor.views.activities;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,26 +26,31 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.imag.air.geoloc_indoor.BeaconId;
+import com.imag.air.geoloc_indoor.ConnectivityService;
+import com.imag.air.geoloc_indoor.LocationHistory;
+import com.imag.air.geoloc_indoor.LocationService;
+import com.imag.air.geoloc_indoor.R;
+import com.imag.air.geoloc_indoor.controllers.BeaconLocationController;
+import com.imag.air.geoloc_indoor.controllers.UserLocationController;
+import com.imag.air.geoloc_indoor.services.AmazonService;
+import com.imag.air.geoloc_indoor.viewmodels.BeaconViewModel;
+import com.imag.air.geoloc_indoor.viewmodels.UserLocationViewModel;
+
 import org.osmdroid.bonuspack.overlays.FolderOverlay;
 import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.imag.air.geoloc_indoor.domain.BeaconId;
-import com.imag.air.geoloc_indoor.domain.LocationHistory;
-import com.imag.air.geoloc_indoor.service.AmazonService;
-import com.imag.air.geoloc_indoor.service.ConnectivityService;
-import com.imag.air.geoloc_indoor.service.LocationService;
 
+//TODO : change methods visibility to private
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     /**
      * The MapView of the activity
@@ -113,6 +114,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ArrayList<LocationHistory> lh = new ArrayList<>();
 
 
+    private UserLocationViewModel userLocation;
+    private UserLocationController userLocationController;
+    private BeaconLocationController beaconLocationController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -511,6 +515,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             r.add(new BeaconId(lh_tmp.getId(), lh_tmp.getLabel()));
         }
         return r;
+    }
+
+    private void subscribeAll(){
+
+    }
+
+    private void unsubscribeAll(){
+
+    }
+
+    private void checkInternetConnection(){
+
+    }
+
+    private void initMap(){
+
     }
 
     /**

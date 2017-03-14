@@ -1,4 +1,4 @@
-package com.imag.air.geoloc_indoor.service;
+package com.imag.air.geoloc_indoor;
 
 import android.app.AlertDialog;
 import android.app.Service;
@@ -16,8 +16,6 @@ import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
-
-import com.imag.air.geoloc_indoor.R;
 
 /**
  * Created by louis on 13/02/2017.

@@ -1,4 +1,4 @@
-package com.imag.air.geoloc_indoor.domain;
+package com.imag.air.geoloc_indoor;
 
 public class BeaconId {
    private double deviceId;

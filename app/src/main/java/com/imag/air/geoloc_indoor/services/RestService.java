@@ -1,6 +1,8 @@
-package com.imag.air.geoloc_indoor.service;
+package com.imag.air.geoloc_indoor.services;
 
 import android.util.Log;
+
+import com.imag.air.geoloc_indoor.services.interfaces.IRestService;
 
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
@@ -11,7 +13,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by Diana Stoian on 02.04.2016.
  */
-public class ARestTemplate {
+public class RestService implements IRestService {
 
     private static final ExecutorService executor = Executors.newFixedThreadPool(16);
     private static final RestTemplate restTemplate  = new RestTemplate();
@@ -20,15 +22,12 @@ public class ARestTemplate {
     }
 
     public static <T> T getForObject(final String url, final Class<T> objectType){
-
         try{
             return restTemplate.getForObject(url, objectType) ;
         } catch (HttpClientErrorException ex) {
             Log.d("Rest Exception", ex.getResponseBodyAsString());
         }
-
         return null;
-
     }
 }
 
