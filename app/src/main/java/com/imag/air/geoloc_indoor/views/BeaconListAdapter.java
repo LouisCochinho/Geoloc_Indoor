@@ -1,41 +1,47 @@
 package com.imag.air.geoloc_indoor.views;
 
+import android.content.Context;
 import android.util.SparseBooleanArray;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
-import com.imag.air.geoloc_indoor.BeaconId;
 import com.imag.air.geoloc_indoor.R;
 import com.imag.air.geoloc_indoor.viewmodels.BeaconViewModel;
-import com.imag.air.geoloc_indoor.views.activities.MainActivity;
 
 import java.util.List;
 
 /**
  * Created by louis on 13/03/2017.
  */
-
+/**
+ * Adapter view for the beacon subscription list
+ */
 public class BeaconListAdapter extends BaseAdapter {
 
-    private List<BeaconViewModel> list;
+    private List<BeaconViewModel> beaconItems;
     private SparseBooleanArray mCheckStates;
 
-    public BeaconListAdapter(List<BeaconViewModel> list) {
-        this.list = list;
+    public BeaconListAdapter(List<BeaconViewModel> beaconItems) {
+        this.beaconItems = beaconItems;
+        this.mCheckStates = new SparseBooleanArray();
+    }
+
+    public BeaconListAdapter(){
         this.mCheckStates = new SparseBooleanArray();
     }
 
     @Override
     public int getCount() {
-        return list.size();
+        return beaconItems.size();
     }
 
     @Override
     public Object getItem(int i) {
-        return list.get(i);
+        return beaconItems.get(i);
     }
 
     @Override
@@ -43,14 +49,27 @@ public class BeaconListAdapter extends BaseAdapter {
         return i;
     }
 
-
-    // passer la view et la map en paramètre
     @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
-      /*  ViewHolder holder;
+    public View getView(int position, View convertView, ViewGroup parent) {
+        return null;
+    }
+
+    public void addBeacon(BeaconViewModel bvm){
+        this.beaconItems.add(bvm);
+    }
+
+    public void setBeaconItems(List<BeaconViewModel> beaconItems) {
+        this.beaconItems = beaconItems;
+    }
+
+    public View getView(int i, View view, ViewGroup viewGroup, Context context, final MyMap map) {
+        ViewHolder holder;
 
         if (view == null) {
-            view = getLayoutInflater().inflate(R.layout.beacon_list_item, null);
+
+            LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            view = inflater.inflate(R.layout.beacon_list_item, null);
+
 
             holder = new ViewHolder();
 
@@ -69,15 +88,14 @@ public class BeaconListAdapter extends BaseAdapter {
                         mCheckStates.put((Integer) checkBox.getTag(), checkBox.isChecked());
                         // TODO Subscribe MQTT
                         // placeNewMarker
-
-                        placeNewMarker((Integer)checkBox.getTag());
+                        map.placeNewBeaconMarker((BeaconViewModel) getItem((Integer)checkBox.getTag()));
                     } else {
                         mCheckStates.delete((Integer) checkBox.getTag());
                         // TODO Unsubscribe MQTT
                         // removeMarker
-                        removeMarker(((Integer) checkBox.getTag()));
+                        map.removeBeaconMarker((BeaconViewModel) getItem((Integer)checkBox.getTag()));
                     }
-                    mMapView.invalidate();
+                    map.getMapView().invalidate();
                 }
             });
 
@@ -90,42 +108,38 @@ public class BeaconListAdapter extends BaseAdapter {
             holder = (ViewHolder) view.getTag();
         }
 
-        BeaconId b = (BeaconId) getItem(i);
+        BeaconViewModel b = (BeaconViewModel) getItem(i);
 
         if (b != null) {
-            holder.name.setText(b.getNameOfDevice());
-            holder.id.setText(String.valueOf(b.getDeviceId()));
+            holder.name.setText(b.getLabel());
+            holder.id.setText(String.valueOf(b.getBeaconId()));
         }
 
         holder.cb.setTag(i);
         holder.cb.setChecked(mCheckStates.get(i));
 
-        */
-
         return view;
     }
 
     // Passer la map en paramètre
-    public void activeAll() {
-        /*
-        if (list == null || list.size() == 0)
+    public void activeAll(MyMap map) {
+
+        if (beaconItems == null || beaconItems.size() == 0)
             return;
 
-        if (mCheckStates.size() == list.size()) {
+        if (mCheckStates.size() == beaconItems.size()) {
             mCheckStates.clear();
             notifyDataSetChanged();
-            removeAllMarkers();
+            map.removeAllMarkers();
         } else {
-            for (int i = 0; i < list.size(); i++) {
+            for (int i = 0; i < beaconItems.size(); i++) {
                 if (!mCheckStates.get(i))
                     mCheckStates.put(i, true);
             }
             notifyDataSetChanged();
-            placeAllMarkers();
+            map.placeNewBeaconMarkers(beaconItems);
         }
-        mMapView.invalidate();
-
-        */
+        map.getMapView().invalidate();
     }
 
     private static class ViewHolder {

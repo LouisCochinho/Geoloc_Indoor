@@ -18,19 +18,15 @@ public class AmazonService implements IAmazonService{
     //public static final String rootUrl = "http://ec2-52-32-26-115.us-west-2.compute.amazonaws.com:8080";
 
 
-    public static List<BeaconId> getDeviceList(){
+    @Override
+    public List<BeaconModel> getAvailableBeacons() {
         String url = rootUrl + "/devices/listBeacons";
-        BeaconId[] array = RestService.getForObject(url, BeaconId[].class);
-        List<BeaconId> beaconsObj = Arrays.asList(array);
+        BeaconModel[] array = RestService.getForObject(url, BeaconModel[].class);
+        List<BeaconModel> beaconsObj = Arrays.asList(array);
         return beaconsObj;
     }
 
-    @Override
-    public List<BeaconModel> getAvailableBeacons() {
-        // TODO = getDeviceList
-        return null;
-    }
-
+    /*
     @Override
     public boolean addBeacon(BeaconModel beacon) {
         return false;
@@ -50,7 +46,7 @@ public class AmazonService implements IAmazonService{
     public BeaconModel getBeaconById(double beaconId) {
         return null;
     }
-
+*/
     @Override
     public boolean subscribe(double beaconId) {
         // TODO

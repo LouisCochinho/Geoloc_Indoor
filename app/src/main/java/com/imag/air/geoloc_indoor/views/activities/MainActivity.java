@@ -1,16 +1,11 @@
 package com.imag.air.geoloc_indoor.views.activities;
 
-import android.annotation.TargetApi;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.util.SparseBooleanArray;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -20,42 +15,32 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.CheckBox;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.imag.air.geoloc_indoor.BeaconId;
-import com.imag.air.geoloc_indoor.ConnectivityService;
-import com.imag.air.geoloc_indoor.LocationHistory;
-import com.imag.air.geoloc_indoor.LocationService;
 import com.imag.air.geoloc_indoor.R;
 import com.imag.air.geoloc_indoor.controllers.BeaconLocationController;
 import com.imag.air.geoloc_indoor.controllers.UserLocationController;
-import com.imag.air.geoloc_indoor.services.AmazonService;
+import com.imag.air.geoloc_indoor.services.NetworkService;
 import com.imag.air.geoloc_indoor.viewmodels.BeaconViewModel;
 import com.imag.air.geoloc_indoor.viewmodels.UserLocationViewModel;
+import com.imag.air.geoloc_indoor.views.BeaconListAdapter;
+import com.imag.air.geoloc_indoor.views.MyMap;
 
-import org.osmdroid.bonuspack.overlays.FolderOverlay;
-import org.osmdroid.bonuspack.overlays.Marker;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 //TODO : change methods visibility to private
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+
     /**
      * The MapView of the activity
      */
-    private MapView mMapView;
+    private MyMap map;
 
     /**
      * A boolean to hide/show all markers
@@ -66,16 +51,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * URL of the Air Lab
      */
     public static final String AIR_WEBSITE = "http://air.imag.fr";
-
-    /**
-     * GeoPoint on which the map is centered
-     */
-    private GeoPoint hello = new GeoPoint(45.1846431, 5.7526904);
-
-    /**
-     * Overlay containing all the markers
-     */
-    private FolderOverlay mOverlay;
 
     /**
      * ListView of available Beacons
@@ -93,205 +68,83 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout drawer;
 
     /**
-     * Map to store marker with associated id
+     * viewModel for user location
      */
-    private Map<Integer, Marker> markerMap;
+    private UserLocationViewModel userLocation;
 
     /**
-     * Service managing location
+     *  controller for user location
      */
-    private LocationService locationService;
-
-
-    /*
-     *  If network is off, the application displays an AlertDialog and closes
-     */
-    private boolean isGeolocated = false;
-
-    /*
-     * List of fake beacons in order to test location
-     */
-    private ArrayList<LocationHistory> lh = new ArrayList<>();
-
-
-    private UserLocationViewModel userLocation;
     private UserLocationController userLocationController;
+
+    /**
+     *  controller for beacon location
+     */
     private BeaconLocationController beaconLocationController;
+
+    /**
+     * FloatingActionButton
+     */
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // get xml file
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Requesting beacon list
-        new HttpRequestBeacons().execute();
+        // If internet is disabled => Enable it (WIFI only)
+        if(!NetworkService.networkChecking(MainActivity.this)){
+            beaconLocationController.enableInternetConnection(MainActivity.this);
+        }
 
-        // Map<Integer,Marker>
-        markerMap = new HashMap<>();
+        // If internet is enabled => Try to get beacons from cloud server
+        if(NetworkService.networkChecking(MainActivity.this)){
+            // Requesting beacon list
+            new HttpRequestBeacons().execute();
+        }
 
         // ListView of beacons
         lvBeacon = (ListView) findViewById(R.id.lv_beacons);
 
+        // Create Floating action button + Listener(geolocation)
+        initFloatingActionButton();
 
-        //beaconOverlayVisible = false;
+        // MyMap initialisation
+        initMap();
 
-        // Check internet connection
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        TextView alertTV = new TextView(this);
-        alertTV.setText(R.string.need_internet);
-        alertTV.setPadding(16, 0, 16, 0);
-        alert.setTitle(R.string.no_internet_connection)
-                .setView(alertTV)
-                .setCancelable(false)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        // Enable wifi
-                        Toast.makeText(MainActivity.this, "Please enable wifi or network to use the app", Toast.LENGTH_LONG).show();
-                        ConnectivityService.setWifiEnabled(MainActivity.this,true);
-                    }
-                });
+        // BeaconListAdapter creation
+        bla = new BeaconListAdapter();
 
-
-        if (!ConnectivityService.networkChecking(MainActivity.this)) {
-            AlertDialog dialog = alert.create();
-            dialog.show();
-        }
-
-        // FloatingActionButton(in the bottom right) to geolocate user
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-        // Géolocalisation
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-           /* if (!beaconOverlayVisible)
-            {
-               mOverlay.setEnabled(beaconOverlayVisible);
-               mOverlay.closeAllInfoWindows();
-               beaconOverlayVisible = true;
-               mMapView.invalidate();
-            } else
-            {
-               mOverlay.setEnabled(beaconOverlayVisible);
-               beaconOverlayVisible = false;
-               mMapView.invalidate();
-            }*/
-
-                // Boite de dialogue choix de géolocalisation
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle(R.string.activate_geolocation)
-                        .setMessage(R.string.choose_gps_or_bluetooth_geoloc)
-                        .setPositiveButton(R.string.gps, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                locationService = new LocationService(MainActivity.this);
-                                if (locationService.canGetLocation()) {
-                                    isGeolocated = true;
-                                    locationService.displayCoordinates();
-                                    LocationHistory lh = new LocationHistory(8, "Me", locationService.getLatitude(), locationService.getLongitude());
-                                    placeMe(lh);
-                                } else {
-                                    locationService.showSettingsAlert();
-                                }
-                            }
-                        })
-                        .setNegativeButton(R.string.bluetooth, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-
-                                // Bluetooth
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-            }
-        });
-
+        // drawer and action bar initialisation
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
+        // Navigation view initialisation
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view2);
         navigationView.setNavigationItemSelectedListener(this);
-
-        // Map initialisation
-        mMapView = (MapView) findViewById(R.id.map);
-        mMapView.setTileSource(TileSourceFactory.MAPNIK);
-        mMapView.setMultiTouchControls(true);
-        mMapView.getController().setZoom(14);
-        mMapView.getController().setCenter(hello);
-
-        mOverlay = new FolderOverlay(this);
-        mMapView.getOverlays().add(mOverlay);
-
-
-
-
-
-        lh.add(new LocationHistory(0, "Testing Beacon 1", 45.1846431, 5.7526904));
-        lh.add(new LocationHistory(1, "Testing Beacon 2", 45.1845412, 5.7543592));
-        lh.add(new LocationHistory(2, "Testing Beacon 3", 45.1935769, 5.7680371));
-        lh.add(new LocationHistory(3, "Testing Beacon 4", 45.1841286, 5.7554077));
-        lh.add(new LocationHistory(4, "Testing Beacon 5", 45.1833388, 5.7536574));
-        lh.add(new LocationHistory(5, "Testing Beacon 6", 45.1857809, 5.7514625));
-        lh.add(new LocationHistory(6, "Testing Beacon 7", 45.1853263, 5.758263));
-
-
-       /* placeNewMarker(l1);
-        placeNewMarker(l2);
-        placeNewMarker(l3);
-        placeNewMarker(l4);
-        placeNewMarker(l5);
-        placeNewMarker(l6);
-        placeNewMarker(l7);*/
-
-       /* MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(getApplicationContext(),mMapView);
-        mLocationOverlay.enableMyLocation(new GpsMyLocationProvider(getApplicationContext()));
-        mMapView.getOverlays().add(mLocationOverlay);
-        GeoPoint gp = mLocationOverlay.getMyLocation();
-        placeMe(new LocationHistory(8,"Me",gp.getLatitude(),gp.getLongitude()));
-        */
     }
 
+    // If no internet or request to server failed
+    private void addFakeBeacons(){
 
-    public List<LocationHistory> getEnabledBeacons(){
-        List<LocationHistory> llh = new ArrayList<>();
-        for(Integer i : markerMap.keySet()){
-            llh.add(getbeaconById(i));
-        }
-        return llh;
+        bla.addBeacon(new BeaconViewModel(0,"Beacon 1",new GeoPoint(45.1846431, 5.7526904),this.map.getMapView(),MainActivity.this));
+        bla.addBeacon(new BeaconViewModel(1,"Beacon 2",new GeoPoint(45.1845412, 5.7543592),this.map.getMapView(),MainActivity.this));
+        bla.addBeacon(new BeaconViewModel(2,"Beacon 3",new GeoPoint(45.1935769, 5.7680371),this.map.getMapView(),MainActivity.this));
+        bla.addBeacon(new BeaconViewModel(3,"Beacon 4",new GeoPoint(45.1841286, 5.7554077),this.map.getMapView(),MainActivity.this));
+        bla.addBeacon(new BeaconViewModel(4,"Beacon 5",new GeoPoint(45.1833388, 5.7536574),this.map.getMapView(),MainActivity.this));
+        bla.addBeacon(new BeaconViewModel(5,"Beacon 6",new GeoPoint(45.1857809, 5.7514625),this.map.getMapView(),MainActivity.this));
+        bla.addBeacon(new BeaconViewModel(6,"Beacon 7",new GeoPoint(45.1853263, 5.758263),this.map.getMapView(),MainActivity.this));
+
+        lvBeacon.setAdapter(bla);
     }
-
-    public LocationHistory getbeaconById(int id){
-       return this.lh.get(id);
-    }
-
-
-    /**
-     * Set an icon on a Marker (for API 19 and below)
-     *
-     * @param m
-     */
-    @TargetApi(19)
-    public void setIcon19(Marker m) {
-        m.setIcon(getResources().getDrawable(R.drawable.ic_place_red_600_48dp));
-    }
-
-    /**
-     * Set an icon on a Marker (for API 21 and higher)
-     *
-     * @param m
-     */
-    @TargetApi(21)
-    public void setIcon21(Marker m) {
-        m.setIcon(getDrawable(R.drawable.ic_place_red_600_48dp));
-    }
-
 
     @Override
     public void onBackPressed() {
@@ -350,297 +203,65 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-
-
-
-
     /**
      * AsyncTask to request the available beacon list
      */
-    private class HttpRequestBeacons extends AsyncTask<String, Object, List<BeaconId>> {
+    private class HttpRequestBeacons extends AsyncTask<String, Object, List<BeaconViewModel>> {
         @Override
-        protected List<BeaconId> doInBackground(String... params) {
+        protected List<BeaconViewModel> doInBackground(String... params) {
             try {
-                List<BeaconId> location = AmazonService.getDeviceList();
-                return location;
+                List<BeaconViewModel> beaconList = beaconLocationController.getAvailableBeacons();
+                return beaconList;
             } catch (Exception e) {
                 return null;
             }
         }
 
+        /**
+         * Post execution of the HttpRequestBeacons above
+         * @param beaconList
+         */
         @Override
-        protected void onPostExecute(List<BeaconId> location) {
-            if (location != null) {
-                bla = new BeaconListAdapter(location);
-                BeaconId bi = location.get(0);
-                Toast.makeText(MainActivity.this, "beacon : "+bi.toString(), Toast.LENGTH_SHORT).show();
+        protected void onPostExecute(List<BeaconViewModel> beaconList) {
+            if (beaconList != null) {
+                bla.setBeaconItems(beaconList);
                 lvBeacon.setAdapter(bla);
             } else {
-                Toast.makeText(MainActivity.this, "Request to server failed", Toast.LENGTH_SHORT).show();
-                //placeNewMarker();
-                bla = new BeaconListAdapter(getTestingBeaconIdList());
+                Toast.makeText(MainActivity.this, "Request to server failed, fake beacons added", Toast.LENGTH_LONG).show();
+                addFakeBeacons();
                 lvBeacon.setAdapter(bla);
 
             }
         }
     }
 
-    /**
-     * Place a Marker according to a LocationHistory
-     *
-     * @param lh
-     */
-    public void placeNewMarker(LocationHistory lh) {
-        Marker mMarker = new Marker(mMapView);
-        mMarker.setPosition(new GeoPoint(lh.getLatitude(), lh.getLongitude()));
-        mMarker.setTitle(String.valueOf(lh.getLabel()));
-        mMarker.setSnippet(getString(R.string.floor) + lh.getLevel() + "\n"
-                + "ID : " + lh.getId());
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
-            setIcon19(mMarker);
-        else
-            setIcon21(mMarker);
-
-        mOverlay.add(mMarker);
-        markerMap.put(lh.getId().intValue(), mMarker);
-
-    }
-
-    public void placeNewMarker(int index) {
-        Marker mMarker = new Marker(mMapView);
-        LocationHistory localLh = this.lh.get(index);
-        mMarker.setPosition(new GeoPoint(localLh.getLatitude(), localLh.getLongitude()));
-        mMarker.setTitle(String.valueOf(localLh.getLabel()));
-        mMarker.setSnippet(getString(R.string.floor) + localLh.getLevel() + "\n"
-                + "ID : " + localLh.getId());
-
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
-            setIcon19(mMarker);
-        else
-            setIcon21(mMarker);
-
-        mOverlay.add(mMarker);
-
-        markerMap.put(localLh.getId().intValue(), mMarker);
-    }
-
-    /**
-     * Place Markes according to a LocationHistory list
-     *
-     * @param locationHistory
-     */
-    public void placeNewMarker(List<LocationHistory> locationHistory) {
-        for (LocationHistory l : locationHistory) {
-            Marker mMarker = new Marker(mMapView);
-            mMarker.setPosition(new GeoPoint(l.getLatitude(), l.getLongitude()));
-            mMarker.setTitle(String.valueOf(l.getLabel()));
-            mMarker.setSnippet(getString(R.string.floor) + l.getLevel() + "\n" + "ID : " + l.getId());
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
-                setIcon19(mMarker);
-            else
-                setIcon21(mMarker);
-
-            mOverlay.add(mMarker);
-            markerMap.put(l.getId().intValue(), mMarker);
-        }
-        mMapView.invalidate();
-    }
-
-    public void placeAllMarkers(){
-        Toast.makeText(MainActivity.this, "placeAll", Toast.LENGTH_SHORT).show();
-        for (LocationHistory l : lh) {
-            Marker mMarker = new Marker(mMapView);
-            mMarker.setPosition(new GeoPoint(l.getLatitude(), l.getLongitude()));
-            mMarker.setTitle(String.valueOf(l.getLabel()));
-            mMarker.setSnippet(getString(R.string.floor) + l.getLevel() + "\n" + "ID : " + l.getId());
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
-                setIcon19(mMarker);
-            else
-                setIcon21(mMarker);
-
-            if(markerMap.get(l.getId().intValue()) == null){
-                mOverlay.add(mMarker);
-                markerMap.put(l.getId().intValue(), mMarker);
-            }
-        }
-    }
-
-    public void removeMarker(int index) {
-        mOverlay.remove(markerMap.get(index));
-        markerMap.remove(index);
-    }
-
-    public void removeAllMarkers(){
-        int s = markerMap.size();
-        for(int i = 0;i<s;i++){
-            removeMarker(i);
-        }
-    }
-
-    public void placeMe(LocationHistory lh) {
-        Marker mMarker = new Marker(mMapView);
-        mMarker.setPosition(new GeoPoint(lh.getLatitude(), lh.getLongitude()));
-        mMarker.setTitle(String.valueOf(lh.getLabel()));
-        mMarker.setSnippet(getString(R.string.floor) + lh.getLevel() + "\n" + "ID : " + lh.getId());
-        mMarker.setIcon(getResources().getDrawable(R.drawable.ic_place_white_48dp));
-        mOverlay.add(mMarker);
-        markerMap.put(lh.getId().intValue(), mMarker);
-
-        mMapView.invalidate();
-    }
-
-    /**
-     * Generate a BeaconId list to test the lvBeacon ListView
-     *
-     *
-     * @return A list with n BeaconId
-     */
-    /*private List<BeaconId> getTestingBeaconIdList(int n) {
-        List<BeaconId> r = new ArrayList<>();
-        for (int i = 0; i < n; i++)
-            r.add(new BeaconId(i, "Testing Beacon" + i));
-
-        return r;
-    }*/
-
-    // Convert LocationHistory beacon model(database side) to beaconId beacon Model(view side)
-    private List<BeaconId> getTestingBeaconIdList(){
-        List<BeaconId> r = new ArrayList<>();
-        for (int i = 0; i < lh.size(); i++) {
-            LocationHistory lh_tmp = lh.get(i);
-            r.add(new BeaconId(lh_tmp.getId(), lh_tmp.getLabel()));
-        }
-        return r;
-    }
 
     private void subscribeAll(){
-
+        //TODO
     }
 
     private void unsubscribeAll(){
-
+        // TODO
     }
 
-    private void checkInternetConnection(){
 
+    // Create FloatingActionButton + Listener
+    private void initFloatingActionButton(){
+        // FloatingActionButton(in the bottom right) to geolocate user
+        this.fab = (FloatingActionButton) findViewById(R.id.fab);
+
+        // Géolocalisation
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                userLocationController.getLocation();
+            }
+        });
     }
 
+
+    // Create map Object
     private void initMap(){
-
-    }
-
-    /**
-     * Adapter view for the beacon subscription list
-     */
-    public class BeaconListAdapter extends BaseAdapter {
-        private List<BeaconId> list;
-        private SparseBooleanArray mCheckStates;
-
-        public BeaconListAdapter(List<BeaconId> list) {
-            this.list = list;
-            this.mCheckStates = new SparseBooleanArray();
-        }
-
-        @Override
-        public int getCount() {
-            return list.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return list.get(i);
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return i;
-        }
-
-        @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
-            ViewHolder holder;
-
-            if (view == null) {
-                view = getLayoutInflater().inflate(R.layout.beacon_list_item, null);
-
-                holder = new ViewHolder();
-
-                holder.name = (TextView) view.findViewById(R.id.tv_name);
-                holder.id = (TextView) view.findViewById(R.id.tv_id);
-                holder.cb = (CheckBox) view.findViewById(R.id.cb_check);
-
-
-                holder.cb.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        CheckBox checkBox = (CheckBox)v;
-                        if ((checkBox.isChecked())) {
-                            // CheckBox have been checked, let's add the value in the table !
-
-                            mCheckStates.put((Integer) checkBox.getTag(), checkBox.isChecked());
-                            // TODO Subscribe MQTT
-                            // placeNewMarker
-
-                            placeNewMarker((Integer)checkBox.getTag());
-                        } else {
-                            mCheckStates.delete((Integer) checkBox.getTag());
-                            // TODO Unsubscribe MQTT
-                            // removeMarker
-                            removeMarker(((Integer) checkBox.getTag()));
-                        }
-                        mMapView.invalidate();
-                    }
-                });
-
-
-                view.setTag(holder);
-                view.setTag(R.id.cb_check, holder.cb);
-                view.setTag(R.id.tv_id, holder.id);
-                view.setTag(R.id.tv_name, holder.name);
-            } else {
-                holder = (ViewHolder) view.getTag();
-            }
-
-            BeaconId b = (BeaconId) getItem(i);
-
-            if (b != null) {
-                holder.name.setText(b.getNameOfDevice());
-                holder.id.setText(String.valueOf(b.getDeviceId()));
-            }
-
-            holder.cb.setTag(i);
-            holder.cb.setChecked(mCheckStates.get(i));
-
-            return view;
-        }
-
-        public void activeAll() {
-            if (list == null || list.size() == 0)
-                return;
-
-            if (mCheckStates.size() == list.size()) {
-                mCheckStates.clear();
-                notifyDataSetChanged();
-                removeAllMarkers();
-            } else {
-                for (int i = 0; i < list.size(); i++) {
-                    if (!mCheckStates.get(i))
-                        mCheckStates.put(i, true);
-                }
-                notifyDataSetChanged();
-                placeAllMarkers();
-            }
-            mMapView.invalidate();
-        }
-    }
-
-    private static class ViewHolder {
-        public TextView name;
-        public TextView id;
-        public CheckBox cb;
+        this.map = new MyMap(MainActivity.this, (MapView) findViewById(R.id.map));
     }
 }

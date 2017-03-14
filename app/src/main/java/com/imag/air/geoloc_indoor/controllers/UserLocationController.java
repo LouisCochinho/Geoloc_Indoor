@@ -21,4 +21,6 @@ public class UserLocationController {
         // TODO : control + call service
         return null;
     }
+
+
 }

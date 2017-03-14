@@ -1,4 +1,4 @@
-package com.imag.air.geoloc_indoor;
+package com.imag.air.geoloc_indoor.services;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 
 // Manage Network connection
 
-public final class ConnectivityService {
+public final class NetworkService {
 
     public static void setWifiEnabled(Context context, boolean enabled){
         WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);

@@ -13,11 +13,11 @@ public interface IAmazonService {
 
     // CRUD
     List<BeaconModel> getAvailableBeacons();
-    boolean addBeacon(BeaconModel beacon);
+   /* boolean addBeacon(BeaconModel beacon);
     boolean updateBeacon(BeaconModel beacon);
     boolean deleteBeacon(double beaconId);
     BeaconModel getBeaconById(double beaconId);
-
+*/
     // MQTT
     boolean subscribe(double beaconId);
     boolean unsubscribe(double beaconId);
