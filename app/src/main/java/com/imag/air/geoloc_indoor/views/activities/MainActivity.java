@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.nav_des_select_all:
                 if (bla != null)
-                    bla.activeAll();
+                    bla.activeAll(map);
                 break;
             default:
                 break;

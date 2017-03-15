@@ -4,6 +4,8 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
 
+import org.osmdroid.util.GeoPoint;
+
 /**
  * Created by louis on 13/03/2017.
  */
@@ -20,16 +22,81 @@ public class UserLocationModel {
     private boolean canGetLocation = false;
 
     private Location location; // location
-    private double latitude; // latitude
-    private double longitude; // longitude
-
-    // The minimum distance to change Updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
-
-    // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
+    private GeoPoint coordinates;
 
     // Declaring a Location Manager
-    protected LocationManager locationManager;
+    private LocationManager locationManager;
 
+    // Context
+    private Context context;
+
+    public UserLocationModel(Context context) {
+        this.context = context;
+        locationManager = (LocationManager) this.context
+                .getSystemService(Context.LOCATION_SERVICE);
+
+        // getting GPS status
+        isGPSEnabled = locationManager
+                .isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        // getting network status
+        isNetworkEnabled = locationManager
+                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
+    public boolean isGPSEnabled() {
+        return isGPSEnabled;
+    }
+
+    public void setGPSEnabled(boolean GPSEnabled) {
+        isGPSEnabled = GPSEnabled;
+    }
+
+    public boolean isNetworkEnabled() {
+        return isNetworkEnabled;
+    }
+
+    public void setNetworkEnabled(boolean networkEnabled) {
+        isNetworkEnabled = networkEnabled;
+    }
+
+    public boolean isCanGetLocation() {
+        return canGetLocation;
+    }
+
+    public void setCanGetLocation(boolean canGetLocation) {
+        this.canGetLocation = canGetLocation;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public GeoPoint getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(GeoPoint coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public LocationManager getLocationManager() {
+        return locationManager;
+    }
+
+    public void setLocationManager(LocationManager locationManager) {
+        this.locationManager = locationManager;
+    }
+
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
 }
