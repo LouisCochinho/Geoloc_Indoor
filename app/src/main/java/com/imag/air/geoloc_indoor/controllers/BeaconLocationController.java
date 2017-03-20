@@ -3,6 +3,7 @@ package com.imag.air.geoloc_indoor.controllers;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -54,7 +55,7 @@ public class BeaconLocationController {
 
         // Check internet connection
         if (!NetworkService.networkChecking(context)) {
-
+            Log.i("ENABLE_INTERNET_CONNECT","entering enableInternetConnection ");
             // Alert creation
             AlertDialog.Builder alert = new AlertDialog.Builder(context);
             TextView alertTV = new TextView(context);

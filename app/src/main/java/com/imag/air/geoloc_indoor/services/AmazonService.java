@@ -1,9 +1,8 @@
 package com.imag.air.geoloc_indoor.services;
 
-import com.imag.air.geoloc_indoor.BeaconId;
+
 import com.imag.air.geoloc_indoor.models.BeaconModel;
 import com.imag.air.geoloc_indoor.services.interfaces.IAmazonService;
-
 import java.util.Arrays;
 import java.util.List;
 

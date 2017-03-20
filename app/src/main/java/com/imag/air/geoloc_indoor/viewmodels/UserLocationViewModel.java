@@ -1,6 +1,7 @@
 package com.imag.air.geoloc_indoor.viewmodels;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.imag.air.geoloc_indoor.R;
 
@@ -25,7 +26,9 @@ public class UserLocationViewModel {
         this.context = context;
         this.label = label;
         this.marker = new Marker(mapView);
-        initMarker();
+        if(this.coordinates != null){
+            initMarker();
+        }
     }
 
     @Override
@@ -37,6 +40,7 @@ public class UserLocationViewModel {
     }
 
     private void initMarker(){
+        Log.i("INIT_MARKER","init marker with coordinates : "+this.coordinates.toString());
         this.marker.setPosition(this.coordinates);
         this.marker.setTitle(label);
         this.marker.setSnippet(toString());
