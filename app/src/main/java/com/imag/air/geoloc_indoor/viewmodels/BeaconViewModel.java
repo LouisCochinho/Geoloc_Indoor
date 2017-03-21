@@ -2,6 +2,8 @@ package com.imag.air.geoloc_indoor.viewmodels;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Build;
 
 import com.imag.air.geoloc_indoor.R;
@@ -10,7 +12,11 @@ import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.springframework.http.ContentCodingType;
+import org.osmdroid.bonuspack.location.GeocoderNominatim;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by louis on 13/03/2017.
@@ -45,11 +51,9 @@ public class BeaconViewModel {
 
     @Override
     public String toString() {
-        return "BeaconViewModel{" +
-                "beaconId=" + beaconId +
-                ", label='" + label + '\'' +
-                ", coordinates=" + coordinates +
-                '}';
+        return  "ID : " + beaconId +
+                " label : " + label  +
+                " coordinates : {" + coordinates.getLatitude()+","+coordinates.getLongitude()+"}";
     }
 
     @TargetApi(19)

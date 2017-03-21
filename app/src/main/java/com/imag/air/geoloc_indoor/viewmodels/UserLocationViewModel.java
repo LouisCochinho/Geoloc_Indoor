@@ -1,11 +1,14 @@
 package com.imag.air.geoloc_indoor.viewmodels;
 
 import android.content.Context;
+import android.renderscript.AllocationAdapter;
 import android.util.Log;
 
 import com.imag.air.geoloc_indoor.R;
 
+import org.osmdroid.bonuspack.overlays.InfoWindow;
 import org.osmdroid.bonuspack.overlays.Marker;
+import org.osmdroid.bonuspack.overlays.MarkerInfoWindow;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
@@ -19,6 +22,7 @@ public class UserLocationViewModel {
     private Context context;
     private GeoPoint coordinates;
     private Marker marker;
+    private String address;
 
     public UserLocationViewModel(String label, GeoPoint coordinates, MapView mapView, Context context) {
 
@@ -30,13 +34,26 @@ public class UserLocationViewModel {
             initMarker();
         }
     }
+    public UserLocationViewModel(String label, GeoPoint coordinates, MapView mapView, Context context, String address) {
+
+        this.coordinates = coordinates;
+        this.context = context;
+        this.label = label;
+        this.marker = new Marker(mapView);
+        this.address = address;
+        if(this.coordinates != null){
+            initMarker();
+        }
+    }
 
     @Override
     public String toString() {
-        return "UserLocationViewModel{" +
-                "label='" + label + '\'' +
-                ", coordinates=" + coordinates +
-                '}';
+        if(this.address != null){
+            return this.address;
+        }
+        else{
+            return " coordinates : {" + coordinates.getLatitude()+","+coordinates.getLongitude()+"}";
+        }
     }
 
     private void initMarker(){
@@ -44,6 +61,7 @@ public class UserLocationViewModel {
         this.marker.setPosition(this.coordinates);
         this.marker.setTitle(label);
         this.marker.setSnippet(toString());
+
         this.marker.setIcon(this.context.getResources().getDrawable(R.drawable.ic_place_white_48dp));
     }
 

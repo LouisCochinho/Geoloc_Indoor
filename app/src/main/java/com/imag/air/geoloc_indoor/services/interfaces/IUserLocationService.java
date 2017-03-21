@@ -12,7 +12,7 @@ import org.osmdroid.util.GeoPoint;
  */
 
 public interface IUserLocationService extends LocationListener{
-    Location getLocation();
+    UserLocationModel getLocation();
     void disableGPS();
     void enableGPS();
 }

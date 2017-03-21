@@ -1,6 +1,7 @@
 package com.imag.air.geoloc_indoor.views;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.imag.air.geoloc_indoor.viewmodels.BeaconViewModel;
 import com.imag.air.geoloc_indoor.viewmodels.UserLocationViewModel;
@@ -45,10 +46,11 @@ public class MyMap {
 
     private void placeMarker(Marker m){
         mOverlay.add(m);
+        m.setEnabled(true);
     }
 
     private void removeMarker(Marker m){
-        mOverlay.remove(m);
+        m.setEnabled(false);
     }
 
     public void placeNewBeaconMarker(BeaconViewModel beaconVM){
@@ -67,9 +69,12 @@ public class MyMap {
     }
 
     public void removeAllMarkers(){
-        for(Overlay o : this.mOverlay.getItems()){
-            this.mOverlay.remove(o);
+        List<Overlay> overlays = this.mOverlay.getItems();
+        for(Overlay o : overlays){
+            o.setEnabled(false);
         }
+
+        this.mOverlay.closeAllInfoWindows();
     }
 
     public void placeUserMarker(UserLocationViewModel userLocationVM){

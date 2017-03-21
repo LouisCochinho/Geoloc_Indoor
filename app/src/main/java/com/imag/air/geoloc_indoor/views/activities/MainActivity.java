@@ -2,6 +2,7 @@ package com.imag.air.geoloc_indoor.views.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ import com.imag.air.geoloc_indoor.views.MyMap;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * A boolean to hide/show all markers
      */
-    private boolean beaconOverlayVisible;
+    private boolean beaconOverlayVisible = false;
 
     /**
      * URL of the Air Lab
@@ -244,7 +246,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.nav_des_select_all:
                 if (bla != null)
-                    bla.enableAll(map);
+                    if(!beaconOverlayVisible)
+                        bla.enableAll();
+                    else
+                        bla.disableAll();
                 break;
             default:
                 break;
@@ -252,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         return true;
     }
-    
+
     /**
      * AsyncTask to request the available beacon list
      */
@@ -284,9 +289,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 addFakeBeacons();
                 lvBeacon.setAdapter(bla);
             }
-            for(int i = 0; i< bla.getCount();i++){
-                Log.i("BLA_CONTENT","item "+i+" : "+bla.getItem(i).toString());
-            }
         }
     }
 
@@ -311,7 +313,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onClick(View view) {
                 Log.i("GET_USER_LOCATION","getting user location...");
-                UserLocationViewModel userLocationVM = userLocationController.getLocation(context,map.getMapView());
+                UserLocationViewModel userLocationVM = null;
+                try {
+                    userLocationVM = userLocationController.getLocation(context,map.getMapView());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(context,"Failed to get your location",Toast.LENGTH_SHORT).show();
+                }
                 if(userLocationVM != null){
                     map.placeUserMarker(userLocationVM);
                     map.getMapView().invalidate();
@@ -435,23 +443,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         // Passer la map en paramètre
-        public void enableAll(MyMap map) {
-            Log.i("ENABLE_ALL","enableAllBeacon");
+        public void enableAll() {
+            Log.i("ENABLE_ALL", "enableAllBeacon");
             if (beaconItems == null || beaconItems.size() == 0)
                 return;
 
-            if (mCheckStates.size() == beaconItems.size()) {
-                mCheckStates.clear();
-                notifyDataSetChanged();
-                map.removeAllMarkers();
-            } else {
-                for (int i = 0; i < beaconItems.size(); i++) {
-                    if (!mCheckStates.get(i))
-                        mCheckStates.put(i, true);
-                }
-                notifyDataSetChanged();
-                map.placeNewBeaconMarkers(beaconItems);
+            for (int i = 0; i < beaconItems.size(); i++) {
+                if (!mCheckStates.get(i))
+                    mCheckStates.put(i, true);
             }
+            map.placeNewBeaconMarkers(beaconItems);
+            beaconOverlayVisible = true;
+            notifyDataSetChanged();
+            map.getMapView().invalidate();
+        }
+
+        public void disableAll() {
+
+            mCheckStates.clear();
+            map.removeAllMarkers();
+            beaconOverlayVisible = false;
+
+            notifyDataSetChanged();
             map.getMapView().invalidate();
         }
 
