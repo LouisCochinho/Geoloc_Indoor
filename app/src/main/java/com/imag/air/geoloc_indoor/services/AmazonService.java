@@ -15,7 +15,7 @@ public class AmazonService implements IAmazonService{
 
     public static final String rootUrl = "http://ec2-52-58-8-165.eu-central-1.compute.amazonaws.com:8080";
     //public static final String rootUrl = "http://ec2-52-32-26-115.us-west-2.compute.amazonaws.com:8080";
-
+    private MqttService mqttService;
 
     @Override
     public List<BeaconModel> getAvailableBeacons() {
@@ -46,17 +46,4 @@ public class AmazonService implements IAmazonService{
         return null;
     }
 */
-    @Override
-    public boolean subscribe(double beaconId) {
-        // TODO
-        return false;
-    }
-
-    @Override
-    public boolean unsubscribe(double beaconId) {
-        // TODO
-        return false;
-    }
-
-
 }

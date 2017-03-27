@@ -18,9 +18,5 @@ public interface IAmazonService {
     boolean deleteBeacon(double beaconId);
     BeaconModel getBeaconById(double beaconId);
 */
-    // MQTT
-    boolean subscribe(double beaconId);
-    boolean unsubscribe(double beaconId);
 
-    // TODO : PAHO
 }

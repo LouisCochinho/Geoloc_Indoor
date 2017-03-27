@@ -42,6 +42,8 @@ public class MyMap {
         mOverlay = new FolderOverlay(context);
         mapView.getOverlays().add(mOverlay);
         // Get tiles in res directory
+
+
     }
 
     private void placeMarker(Marker m){

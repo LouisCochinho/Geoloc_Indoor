@@ -39,13 +39,13 @@ import java.util.Locale;
 
 public class UserLocationService implements IUserLocationService {
     // flag for GPS status
-    public boolean isGPSEnabled = false;
+    private boolean isGPSEnabled = false;
 
     // flag for network status
-    boolean isNetworkEnabled = false;
+    private boolean isNetworkEnabled = false;
 
     // flag for GPS status
-    boolean canGetLocation = false;
+   private boolean canGetLocation = false;
 
     Location location; // location
     double latitude; // latitude
