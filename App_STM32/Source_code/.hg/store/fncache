@@ -1,0 +1,4 @@
+data/BLE_API.lib.i
+data/mbed.bld.i
+data/X_NUCLEO_IDB0XA1.lib.i
+data/main.cpp.i
