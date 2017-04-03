@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -18,18 +17,15 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import com.imag.air.geoloc_indoor.R;
 import com.imag.air.geoloc_indoor.models.UserLocationModel;
 import com.imag.air.geoloc_indoor.services.interfaces.IUserLocationService;
 
+
 import org.osmdroid.util.GeoPoint;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Locale;
 
