@@ -10,6 +10,8 @@ public class BeaconModel {
     private String label;
     private String date;
     private int level;
+    private double latitude;
+    private double longitude;
     private boolean isSubscribed;
 
     public BeaconModel(double beaconId, String label, String date, int level, boolean isSubscribed) {
@@ -19,6 +21,8 @@ public class BeaconModel {
         this.level = level;
         this.isSubscribed = isSubscribed;
     }
+
+
 
     // TODO : controls
     public double getBeaconId() {
@@ -43,6 +47,22 @@ public class BeaconModel {
 
     public void setSubscribed(boolean subscribed) {
         isSubscribed = subscribed;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
     public void subscribe(){

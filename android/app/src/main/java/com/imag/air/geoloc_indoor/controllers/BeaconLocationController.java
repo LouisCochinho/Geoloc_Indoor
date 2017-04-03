@@ -10,10 +10,14 @@ import android.widget.Toast;
 import com.imag.air.geoloc_indoor.R;
 import com.imag.air.geoloc_indoor.models.BeaconModel;
 import com.imag.air.geoloc_indoor.services.NetworkService;
+import com.imag.air.geoloc_indoor.services.RestService;
 import com.imag.air.geoloc_indoor.viewmodels.BeaconViewModel;
 import com.imag.air.geoloc_indoor.services.AmazonService;
 import com.imag.air.geoloc_indoor.services.UserLocationService;
 import com.imag.air.geoloc_indoor.views.activities.MainActivity;
+
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +29,15 @@ import java.util.List;
 public class BeaconLocationController {
 
     private AmazonService amazonService;
+    private MapView mapView;
+    private Context context;
     private List<BeaconModel> beacons;
 
-    public BeaconLocationController(){
+    public BeaconLocationController(MapView mapView, Context context){
         amazonService = new AmazonService();
         beacons = new ArrayList<>();
+        this.context = context;
+        this.mapView = mapView;
     }
 
     public boolean subscribe(double beaconId){
@@ -41,8 +49,24 @@ public class BeaconLocationController {
     }
 
     public List<BeaconViewModel> getAvailableBeacons() {
+        Log.i("GET_AVAILABLE_BEACON","getAvailableBeacon");
         // TODO : call Service + fill beacons List +convert BeaconModel to BeaconViewModel
-        return null;
+        List<BeaconModel> beacons = amazonService.getAvailableBeacons();
+
+        if(beacons == null){
+            Log.i("beacons = null","beacons == null");
+        }else{
+            Log.i("beacons !=  null","beacons != null");
+        }
+        List<BeaconViewModel> beaconsVM = new ArrayList<>();
+        for(BeaconModel b : beacons){
+            Log.i("BEACON","BEACON : "+b.toString());
+            beaconsVM.add(
+                    new BeaconViewModel(
+                            b.getBeaconId(),b.getLabel(),new GeoPoint(b.getLatitude(),b.getLongitude()),mapView,context));
+        }
+
+        return beaconsVM;
     }
 
     private BeaconModel getBeaconById(double beaconId){

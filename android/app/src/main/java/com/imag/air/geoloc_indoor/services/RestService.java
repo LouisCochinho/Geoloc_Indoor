@@ -25,7 +25,7 @@ public class RestService implements IRestService {
         try{
             return restTemplate.getForObject(url, objectType) ;
         } catch (HttpClientErrorException ex) {
-            Log.d("Rest Exception", ex.getResponseBodyAsString());
+            Log.i("Rest Exception", ex.getResponseBodyAsString());
         }
         return null;
     }

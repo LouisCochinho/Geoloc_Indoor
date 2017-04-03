@@ -116,9 +116,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // initializing BeaconListAdapter
         bla = new BeaconListAdapter();
 
-        // initializing controllers
-        userLocationController = new UserLocationController(context);
-        beaconLocationController = new BeaconLocationController();
 
         // get xml file
         setContentView(R.layout.activity_main);
@@ -179,6 +176,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view2);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // initializing controllers
+        userLocationController = new UserLocationController(context);
+        beaconLocationController = new BeaconLocationController(this.map.getMapView(),this.context);
+
         // If internet is enabled => Try to get beacons from cloud server
         if(NetworkService.networkChecking(context)){
             // Requesting beacon list
@@ -190,13 +191,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // If no internet or request to server failed
     private void addFakeBeacons(){
         if(bla.getBeaconItems().isEmpty()){
-            bla.addBeacon(new BeaconViewModel(0,"Beacon 1",new GeoPoint(45.1846431, 5.7526904),this.map.getMapView(),context));
-            bla.addBeacon(new BeaconViewModel(1,"Beacon 2",new GeoPoint(45.1845412, 5.7543592),this.map.getMapView(),context));
-            bla.addBeacon(new BeaconViewModel(2,"Beacon 3",new GeoPoint(45.1935769, 5.7680371),this.map.getMapView(),context));
-            bla.addBeacon(new BeaconViewModel(3,"Beacon 4",new GeoPoint(45.1841286, 5.7554077),this.map.getMapView(),context));
-            bla.addBeacon(new BeaconViewModel(4,"Beacon 5",new GeoPoint(45.1833388, 5.7536574),this.map.getMapView(),context));
-            bla.addBeacon(new BeaconViewModel(5,"Beacon 6",new GeoPoint(45.1857809, 5.7514625),this.map.getMapView(),context));
-            bla.addBeacon(new BeaconViewModel(6,"Beacon 7",new GeoPoint(45.1853263, 5.758263),this.map.getMapView(),context));
+            bla.addBeacon(new BeaconViewModel(1220300679,"Beacon 1",new GeoPoint(45.1846431, 5.7526904),this.map.getMapView(),context));
+          //  bla.addBeacon(new BeaconViewModel(1,"Beacon 2",new GeoPoint(45.1845412, 5.7543592),this.map.getMapView(),context));
+          //  bla.addBeacon(new BeaconViewModel(2,"Beacon 3",new GeoPoint(45.1935769, 5.7680371),this.map.getMapView(),context));
+          //  bla.addBeacon(new BeaconViewModel(3,"Beacon 4",new GeoPoint(45.1841286, 5.7554077),this.map.getMapView(),context));
+          //  bla.addBeacon(new BeaconViewModel(4,"Beacon 5",new GeoPoint(45.1833388, 5.7536574),this.map.getMapView(),context));
+          //  bla.addBeacon(new BeaconViewModel(5,"Beacon 6",new GeoPoint(45.1857809, 5.7514625),this.map.getMapView(),context));
+          //  bla.addBeacon(new BeaconViewModel(6,"Beacon 7",new GeoPoint(45.1853263, 5.758263),this.map.getMapView(),context));
 
             lvBeacon.setAdapter(bla);
         }
@@ -274,8 +275,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected List<BeaconViewModel> doInBackground(String... params) {
             try {
                 Log.i("GET_BEACONS","getting available beacons...");
-                List<BeaconViewModel> beaconList = beaconLocationController.getAvailableBeacons();
-                return beaconList;
+               // List<BeaconViewModel> beaconList = beaconLocationController.getAvailableBeacons();
+               // Log.i("GET_BEACONS","getting available beacons finished");
+               // return beaconList;
+                return null;
             } catch (Exception e) {
                 return null;
             }
@@ -293,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 lvBeacon.setAdapter(bla);
             } else {
                 Log.i("GET_BEACONS_FAILED","got beacons failed, add fake beacons instead.");
-                Toast.makeText(context, "Request to server failed, fake beacons added", Toast.LENGTH_LONG).show();
+              //  Toast.makeText(context, "Request to server failed, fake beacons added", Toast.LENGTH_LONG).show();
                 addFakeBeacons();
                 lvBeacon.setAdapter(bla);
             }
@@ -403,9 +406,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
             ViewHolder holder;
-            Log.i("GET_VIEW_LIST_ADAPTER","entering getView method...");
             if (view == null) {
-                Log.i("GET_VIEW_LIST_ADAPTER","view == null");
                 LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 view = inflater.inflate(R.layout.beacon_list_item, null);
 
@@ -445,7 +446,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 view.setTag(R.id.tv_id, holder.id);
                 view.setTag(R.id.tv_name, holder.name);
             } else {
-                Log.i("GET_VIEW_LIST_ADAPTER","view != null...");
                 holder = (ViewHolder) view.getTag();
             }
 
