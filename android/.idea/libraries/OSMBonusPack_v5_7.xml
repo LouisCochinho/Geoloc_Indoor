@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="OSMBonusPack-v5.7">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.android/build-cache/aa92fb2cdc018ed78cdcf6f0b6e5e8f3390107b9/output/res" />
+      <root url="jar://$USER_HOME$/.android/build-cache/aa92fb2cdc018ed78cdcf6f0b6e5e8f3390107b9/output/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.MKergall.osmbonuspack/OSMBonusPack/v5.7/3f54d35c01af154ed84dc84a5a195da6193f1d51/OSMBonusPack-v5.7-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
