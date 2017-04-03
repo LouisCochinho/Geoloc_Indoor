@@ -2,7 +2,9 @@ package com.imag.air.geoloc_indoor.views.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Geocoder;
+import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -35,6 +37,7 @@ import com.imag.air.geoloc_indoor.viewmodels.BeaconViewModel;
 import com.imag.air.geoloc_indoor.viewmodels.UserLocationViewModel;
 import com.imag.air.geoloc_indoor.views.MyMap;
 
+import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
@@ -93,6 +96,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private FloatingActionButton fab;
 
     /**
+     * FloatingActionButton
+     */
+    private FloatingActionButton fab_floor;
+
+    /**
      * context
      */
     private Context context;
@@ -139,8 +147,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.e("LVBEACON_INITIALIZED","lvbeacon null");
         }
 
-        // Create Floating action button + Listener(geolocation)
+        // Create Floating action button + Listener(geolocation) + fab Floor + Change Floor
         initFloatingActionButton();
+       // initFloatingActionButtonFloor();
         if(fab!= null){
             Log.i("FAB_INITIALIZED","fab initialized.");
         }
@@ -158,8 +167,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         // BeaconListAdapter creation
         bla = new BeaconListAdapter();
-
-
 
         // drawer and action bar initialisation
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -194,6 +201,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             lvBeacon.setAdapter(bla);
         }
     }
+
 
     @Override
     public void onBackPressed() {
@@ -302,6 +310,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
+    /*private void initFloatingActionButtonFloor(){
+        this.fab_floor = (FloatingActionButton)findViewById(R.id.fab_floor);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // TODO : Change floor view
+                Snackbar.make(drawer, "Change floor view : Feature in development", Snackbar.LENGTH_LONG).show();
+            }
+        });
+    }*/
+
     // Create FloatingActionButton + Listener
     private void initFloatingActionButton(){
         Log.i("INIT_FAB","initializing Fab...");
@@ -323,6 +342,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if(userLocationVM != null){
                     map.placeUserMarker(userLocationVM);
                     map.getMapView().invalidate();
+                    //fab.setEnabled(false);
                 }
             }
         });
@@ -332,9 +352,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // Create map Object
     private void initMap(){
         Log.i("INIT_MAP","initializing map...");
-        this.map = new MyMap(context, (MapView) findViewById(R.id.map));
+        this.map = new MyMap(context, (MapView) findViewById(R.id.map),false);
+        this.map.setPolytechIcon();
     }
-
 
     /**
      * Created by louis on 13/03/2017.

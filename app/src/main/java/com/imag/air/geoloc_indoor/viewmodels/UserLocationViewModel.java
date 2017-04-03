@@ -46,6 +46,10 @@ public class UserLocationViewModel {
         }
     }
 
+    public String getLabel() {
+        return label;
+    }
+
     @Override
     public String toString() {
         if(this.address != null){

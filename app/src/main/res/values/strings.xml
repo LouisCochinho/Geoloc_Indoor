@@ -24,4 +24,5 @@
     <string name="ok">Ok !</string>
     <string name="floor">Floor :</string>
     <string name="request_fail">Request to server failed</string>
+    <string name="title_activity_indoor">IndoorActivity</string>
 </resources>
